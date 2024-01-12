@@ -4,6 +4,8 @@
 
 PDFGem Chat is an interactive chat interface designed for querying information from uploaded PDF files. This project utilizes Streamlit, PyPDF2, LangChain, Google Generative AI, and FAISS to create a seamless experience for users to ask questions related to the content of PDF documents.
 
+<img width="960" alt="image" src="https://github.com/SurajSanap/PDFGemini_Bot/assets/101057653/15fe59a5-cf8a-4b9b-8e84-536a99bf1cfe">
+
 ## Components
 
 ### 1. User Interface
