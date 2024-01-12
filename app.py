@@ -4,14 +4,11 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import os
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import google.generativeai as genai
-from langchain_community.vectorstores import FAISS
-
+from langchain.vectorstores import FAISS
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.prompts import PromptTemplate
 from dotenv import load_dotenv
-
-from transformers import pipeline
 
 load_dotenv()
 os.getenv("GOOGLE_API_KEY")
@@ -44,8 +41,8 @@ def get_vector_store(text_chunks):
 def get_conversational_chain():
 
     prompt_template = """
-    Answer the question as detailed as possible from the provided context and from internet also, make sure to provide all the details, if the answer is not in
-    provided context just say, search on google. You can include Markdown font, bullets an tables if required.\n\n
+    Answer the question as detailed as possible from the provided context, make sure to provide all the details, if the answer is not in
+    provided context just say, "answer is not available in the context", don't provide the wrong answer\n\n
     Context:\n {context}?\n
     Question: \n{question}\n
 
@@ -62,45 +59,45 @@ def get_conversational_chain():
 
 
 
-def user_input(user_question, context_docs):
-    question_answering = pipeline("question-answering", model="bert-large-uncased-whole-word-masking-finetuned-squad")
+def user_input(user_question):
+    embeddings = GoogleGenerativeAIEmbeddings(model = "models/embedding-001")
+    
+    new_db = FAISS.load_local("faiss_index", embeddings)
+    docs = new_db.similarity_search(user_question)
 
-    answers_container = st.empty()
+    chain = get_conversational_chain()
 
-    for doc in context_docs:
-        result = question_answering(question=user_question, context=doc)
-        answers_container.write("Answer:", result["answer"])
+    
+    response = chain(
+        {"input_documents":docs, "question": user_question}
+        , return_only_outputs=True)
+
+    print(response)
+    st.write("Reply: ", response["output_text"])
 
 
 
 
 def main():
-    st.set_page_config("SRS-Gemini")
-    st.header("Chat with PDF using Gemini")
+    st.set_page_config("PDF.Gemini")
+    st.header("PDF.Gemini Start chat")
 
     user_question = st.text_input("Ask a Question from the PDF Files")
 
     if user_question:
+        user_input(user_question)
+
+    with st.sidebar:
+        st.title("Menu:")
         pdf_docs = st.file_uploader("Upload your PDF Files and Click on the Submit & Process Button", accept_multiple_files=True)
-
-        if st.button("Start Train") and pdf_docs:
+        if st.button("Submit & Process"):
             with st.spinner("Processing..."):
-                try:
-                    raw_text = get_pdf_text(pdf_docs)
+                raw_text = get_pdf_text(pdf_docs)
+                text_chunks = get_text_chunks(raw_text)
+                get_vector_store(text_chunks)
+                st.success("Done")
 
-                    if not raw_text:
-                        st.warning("No text found in the uploaded PDFs. Please upload valid PDF files.")
-                        return
 
-                    text_chunks = get_text_chunks(raw_text)
-                    get_vector_store(text_chunks)
 
-                    context_docs = get_text_chunks(raw_text)  # Each page becomes a context document
-                    user_input(user_question, context_docs)
-
-                except Exception as e:
-                    st.error(f"An error occurred: {str(e)}")
-                    # Log the error for further investigation
-                    st.exception(e)
-
-            st.success("Done")
+if __name__ == "__main__":
+    main()
