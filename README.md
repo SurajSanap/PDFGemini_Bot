@@ -66,8 +66,8 @@ PDFGem Chat is an interactive chat interface designed for querying information f
 2. **Set up Google API Key**: Store the Google API key in a secure manner using the `dotenv` file.
 3. **Run the Application**: Execute the script to launch the Streamlit interface.
 
-Feel free to explore and enhance the functionalities of this project based on your requirements.
+Feel free to explore and enhance the functionalities of this project based on your requirements. 
 
 ---
 
-**PDFGemini_Bot** - Unleash the Power of Conversational PDF Exploration! 💬✨
+**PDFGemini** - Unleash the Power of Conversational PDF Exploration! 💬✨
